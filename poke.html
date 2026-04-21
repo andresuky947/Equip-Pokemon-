@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Stadium Canvas - Kanto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: white;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            touch-action: none;
+            image-rendering: pixelated;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        .pointer-events-auto {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center h-screen">
+
+    <!-- Capa de Interfaz de Usuario (UI) -->
+    <div id="ui-layer" class="p-6">
+        <div class="max-w-5xl mx-auto flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-black italic tracking-tighter text-yellow-400 drop-shadow-md">POKÉMON STADIUM
+                </h1>
+                <p class="text-xs font-bold text-gray-400">CANVAS ENGINE | SÓLO 1ª GENERACIÓN</p>
+            </div>
+            <div class="flex gap-4 pointer-events-auto">
+                <div class="bg-black/50 border border-white/20 px-4 py-2 rounded-lg">
+                    <span class="text-xs block text-gray-400 uppercase">Equipo</span>
+                    <span id="team-count" class="text-xl font-bold">0 / 6</span>
+                </div>
+                <button id="btn-battle" onclick="startBattle()"
+                    class="hidden bg-red-600 hover:bg-red-500 text-white px-8 py-2 rounded-lg font-black italic transition-all transform hover:scale-105 shadow-lg shadow-red-900/50">
+                    ¡BATALLA!
+                </button>
+                <button id="btn-reset" onclick="resetApp()"
+                    class="hidden bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-bold transition-all">
+                    Reiniciar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- El Canvas Principal -->
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const teamCountDisplay = document.getElementById('team-count');
+        const btnBattle = document.getElementById('btn-battle');
+        const btnReset = document.getElementById('btn-reset');
+
+        // Configuración y Datos
+        let gameState = 'CATALOG'; // CATALOG, BATTLE, RESULT
+        let scrollY = 0;
+        let selectedIds = new Set();
+        let hoveredId = null;
+        let images = {};
+        let battleAnimFrame = 0;
+        let rivalTeam = [];
+        let playerTotal = 0;
+        let rivalTotal = 0;
+
+        const POKEMONS = [
+            { id: 1, name: 'Bulbasaur', pc: 1115, color: '#78C850' },
+            { id: 4, name: 'Charmander', pc: 980, color: '#F08030' },
+            { id: 7, name: 'Squirtle', pc: 946, color: '#6890F0' },
+            { id: 25, name: 'Pikachu', pc: 938, color: '#F8D030' },
+            { id: 6, name: 'Charizard', pc: 2889, color: '#F08030' },
+            { id: 9, name: 'Blastoise', pc: 2466, color: '#6890F0' },
+            { id: 3, name: 'Venusaur', pc: 2720, color: '#78C850' },
+            { id: 150, name: 'Mewtwo', pc: 4178, color: '#F85888' },
+            { id: 149, name: 'Dragonite', pc: 3792, color: '#7038F8' },
+            { id: 130, name: 'Gyarados', pc: 3391, color: '#6890F0' },
+            { id: 143, name: 'Snorlax', pc: 3225, color: '#A8A878' },
+            { id: 94, name: 'Gengar', pc: 2878, color: '#705898' },
+            { id: 65, name: 'Alakazam', pc: 3057, color: '#F85888' },
+            { id: 68, name: 'Machamp', pc: 3056, color: '#C03028' },
+            { id: 131, name: 'Lapras', pc: 2641, color: '#98D8D8' },
+            { id: 38, name: 'Ninetales', pc: 2300, color: '#F08030' },
+            { id: 59, name: 'Arcanine', pc: 3029, color: '#F08030' },
+            { id: 135, name: 'Jolteon', pc: 2888, color: '#F8D030' },
+            { id: 134, name: 'Vaporeon', pc: 3114, color: '#6890F0' },
+            { id: 136, name: 'Flareon', pc: 3029, color: '#F08030' },
+        ];
+
+        // Inicialización
+        function init() {
+            resize();
+            loadImages();
+            requestAnimationFrame(render);
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function loadImages() {
+            POKEMONS.forEach(p => {
+                const img = new Image();
+                img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png`;
+                img.onload = () => { images[p.id] = img; };
+            });
+        }
+
+        // Lógica de Dibujo del Catálogo
+        const cardW = 160;
+        const cardH = 200;
+        const gap = 20;
+
+        function drawCatalog() {
+            const cols = Math.floor(canvas.width / (cardW + gap));
+            const startX = (canvas.width - (cols * (cardW + gap) - gap)) / 2;
+            const startY = 120 + scrollY;
+
+            POKEMONS.forEach((p, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const x = startX + col * (cardW + gap);
+                const y = startY + row * (cardH + gap);
+
+                // Solo dibujar si está en pantalla
+                if (y + cardH < 0 || y > canvas.height) return;
+
+                // Fondo de tarjeta
+                ctx.fillStyle = selectedIds.has(p.id) ? '#2563eb' : (hoveredId === p.id ? '#333' : '#222');
+                ctx.beginPath();
+                ctx.roundRect(x, y, cardW, cardH, 15);
+                ctx.fill();
+
+                if (selectedIds.has(p.id)) {
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+
+                // Imagen
+                if (images[p.id]) {
+                    ctx.drawImage(images[p.id], x + 20, y + 20, cardW - 40, cardW - 40);
+                }
+
+                // Texto
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(p.name.toUpperCase(), x + cardW / 2, y + cardH - 45);
+
+                ctx.fillStyle = selectedIds.has(p.id) ? '#bfdbfe' : '#60a5fa';
+                ctx.font = '900 12px Arial';
+                ctx.fillText(`PC ${p.pc}`, x + cardW / 2, y + cardH - 25);
+
+                // Guardar hitboxes para clics
+                p.hitbox = { x, y, w: cardW, h: cardH };
+            });
+        }
+
+        // Lógica de Batalla
+        function drawBattle() {
+            const playerTeam = POKEMONS.filter(p => selectedIds.has(p.id));
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Fondo de arena
+            const gradient = ctx.createRadialGradient(centerX, centerY, 50, centerX, centerY, 500);
+            gradient.addColorStop(0, '#333');
+            gradient.addColorStop(1, '#000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // VS Texto
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.font = '900 200px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText("VS", centerX, centerY + 70);
+
+            // Equipos
+            renderTeamSide(playerTeam, 100, "TU EQUIPO", '#3b82f6', playerTotal);
+            renderTeamSide(rivalTeam, canvas.width - 300, "RIVAL", '#ef4444', rivalTotal);
+
+            if (gameState === 'RESULT') {
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const winner = playerTotal >= rivalTotal ? "¡VICTORIA!" : "DERROTA";
+                ctx.fillStyle = playerTotal >= rivalTotal ? '#4ade80' : '#f87171';
+                ctx.font = '900 80px Arial italic';
+                ctx.fillText(winner, centerX, centerY);
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText(`${playerTotal} PC vs ${rivalTotal} PC`, centerX, centerY + 60);
+            }
+        }
+
+        function renderTeamSide(team, xStart, label, color, total) {
+            ctx.fillStyle = color;
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(label, xStart, 180);
+
+            ctx.font = '900 40px Arial';
+            ctx.fillText(`${total} PC`, xStart, 230);
+
+            team.forEach((p, i) => {
+                const y = 280 + i * 70;
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.roundRect(xStart, y, 200, 60, 10);
+                ctx.fill();
+
+                if (images[p.id]) {
+                    ctx.drawImage(images[p.id], xStart + 5, y + 5, 50, 50);
+                }
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText(p.name, xStart + 65, y + 25);
+                ctx.fillStyle = color;
+                ctx.fillText(`PC ${p.pc}`, xStart + 65, y + 45);
+            });
+        }
+
+        // Loop Principal
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'CATALOG') {
+                drawCatalog();
+            } else {
+                drawBattle();
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        // Interacciones
+        canvas.addEventListener('mousemove', (e) => {
+            if (gameState !== 'CATALOG') return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            hoveredId = null;
+            POKEMONS.forEach(p => {
+                if (p.hitbox && mouseX > p.hitbox.x && mouseX < p.hitbox.x + p.hitbox.w &&
+                    mouseY > p.hitbox.y && mouseY < p.hitbox.y + p.hitbox.h) {
+                    hoveredId = p.id;
+                }
+            });
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameState !== 'CATALOG') return;
+            if (hoveredId) {
+                if (selectedIds.has(hoveredId)) {
+                    selectedIds.delete(hoveredId);
+                } else if (selectedIds.size < 6) {
+                    selectedIds.add(hoveredId);
+                }
+                updateUI();
+            }
+        });
+
+        window.addEventListener('wheel', (e) => {
+            if (gameState !== 'CATALOG') return;
+            scrollY -= e.deltaY;
+            // Limitar scroll
+            const maxScroll = 0;
+            const minScroll = -Math.floor(POKEMONS.length / 4) * (cardH + gap);
+            scrollY = Math.min(maxScroll, Math.max(minScroll, scrollY));
+        });
+
+        function updateUI() {
+            teamCountDisplay.textContent = `${selectedIds.size} / 6`;
+            if (selectedIds.size === 6) {
+                btnBattle.classList.remove('hidden');
+            } else {
+                btnBattle.classList.add('hidden');
+            }
+        }
+
+        function startBattle() {
+            gameState = 'BATTLE';
+            btnBattle.classList.add('hidden');
+
+            // Generar equipo rival al azar
+            rivalTeam = [...POKEMONS].sort(() => 0.5 - Math.random()).slice(0, 6);
+
+            playerTotal = POKEMONS.filter(p => selectedIds.has(p.id)).reduce((a, b) => a + b.pc, 0);
+            rivalTotal = rivalTeam.reduce((a, b) => a + b.pc, 0);
+
+            setTimeout(() => {
+                gameState = 'RESULT';
+                btnReset.classList.remove('hidden');
+            }, 2000);
+        }
+
+        function resetApp() {
+            selectedIds.clear();
+            gameState = 'CATALOG';
+            btnReset.classList.add('hidden');
+            scrollY = 0;
+            updateUI();
+        }
+
+        window.addEventListener('resize', resize);
+        init();
+
+    </script>
+</body>
+
+</html>
