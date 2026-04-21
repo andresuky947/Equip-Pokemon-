@@ -1,3 +1,9 @@
+const pantallaInicio = document.getElementById("pantallaInicio");
+const app = document.getElementById("app");
+const btnComenzar = document.getElementById("btnComenzar");
+const btnVerReglas = document.getElementById("btnVerReglas");
+const reglasBox = document.getElementById("reglasBox");
+
 const catalogo = document.getElementById("catalogo");
 const busqueda = document.getElementById("busqueda");
 const filtroTipo = document.getElementById("filtroTipo");
@@ -6,11 +12,19 @@ const pieTexto = document.getElementById("pieTexto");
 
 const equipoUsuarioBox = document.getElementById("equipoUsuario");
 const contadorUsuario = document.getElementById("contadorUsuario");
+const contadorUsuarioHero = document.getElementById("contadorUsuarioHero");
+const rivalHero = document.getElementById("rivalHero");
+
 const btnLimpiarUsuario = document.getElementById("btnLimpiarUsuario");
+const btnAutocompletar = document.getElementById("btnAutocompletar");
 
 const equiposRivalesBox = document.getElementById("equiposRivales");
 const btnBatalla = document.getElementById("btnBatalla");
 const btnResetTodo = document.getElementById("btnResetTodo");
+
+const presentacionVS = document.getElementById("presentacionVS");
+const vsNombreA = document.getElementById("vsNombreA");
+const vsNombreB = document.getElementById("vsNombreB");
 
 const cinematica = document.getElementById("cinematica");
 const estadoBatalla = document.getElementById("estadoBatalla");
@@ -24,6 +38,14 @@ const vidaTextoA = document.getElementById("vidaTextoA");
 const vidaTextoB = document.getElementById("vidaTextoB");
 const logBatalla = document.getElementById("logBatalla");
 const rondaTexto = document.getElementById("rondaTexto");
+const turnoBox = document.getElementById("turnoBox");
+const marcadorJugador = document.getElementById("marcadorJugador");
+const marcadorRival = document.getElementById("marcadorRival");
+
+const resultadoFinal = document.getElementById("resultadoFinal");
+const tituloResultado = document.getElementById("tituloResultado");
+const textoResultado = document.getElementById("textoResultado");
+const btnJugarOtra = document.getElementById("btnJugarOtra");
 
 let pokemones = [];
 let pokemonesFiltrados = [];
@@ -42,40 +64,15 @@ const idsPokemon = [
     143, 149
 ];
 
-async function cargarPokemones() {
-    try {
-        const promesas = idsPokemon.map(async (id) => {
-            const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-            const data = await res.json();
+btnComenzar.addEventListener("click", () => {
+    pantallaInicio.classList.add("oculto");
+    app.classList.remove("oculto");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+});
 
-            return {
-                id: data.id,
-                nombre: data.name,
-                imagen: data.sprites.other["official-artwork"].front_default || data.sprites.front_default,
-                tipos: data.types.map(t => t.type.name),
-                hp: data.stats.find(s => s.stat.name === "hp").base_stat,
-                ataque: data.stats.find(s => s.stat.name === "attack").base_stat,
-                defensa: data.stats.find(s => s.stat.name === "defense").base_stat,
-                velocidad: data.stats.find(s => s.stat.name === "speed").base_stat,
-                especial: data.stats.find(s => s.stat.name === "special-attack").base_stat,
-                altura: data.height,
-                peso: data.weight
-            };
-        });
-
-        pokemones = await Promise.all(promesas);
-        pokemonesFiltrados = [...pokemones];
-
-        llenarTipos();
-        generarEquiposRivales();
-        renderizarEquipoUsuario();
-        renderizarEquiposRivales();
-        renderizarPokemones(pokemonesFiltrados);
-    } catch (error) {
-        console.error(error);
-        catalogo.innerHTML = `<p class="mensaje">No se pudieron cargar los pokémons.</p>`;
-    }
-}
+btnVerReglas.addEventListener("click", () => {
+    reglasBox.classList.toggle("oculto");
+});
 
 function capitalizar(texto) {
     return texto.charAt(0).toUpperCase() + texto.slice(1);
@@ -87,14 +84,14 @@ function traducirTipo(tipo) {
         poison: "veneno",
         fire: "fuego",
         water: "agua",
-        electric: "electrico",
+        electric: "eléctrico",
         normal: "normal",
         fairy: "hada",
         flying: "volador",
         bug: "bicho",
         ground: "tierra",
         fighting: "lucha",
-        psychic: "psiquico",
+        psychic: "psíquico",
         rock: "roca",
         ice: "hielo",
         ghost: "fantasma"
@@ -123,26 +120,22 @@ function claseTipo(tipo) {
     return mapa[tipo] || "normal";
 }
 
-function llenarTipos() {
-    const tiposUnicos = [...new Set(pokemones.flatMap(p => p.tipos))].sort();
-
-    tiposUnicos.forEach(tipo => {
-        const option = document.createElement("option");
-        option.value = tipo;
-        option.textContent = capitalizar(traducirTipo(tipo));
-        filtroTipo.appendChild(option);
-    });
-}
-
 function calcularPoder(pokemon) {
     return pokemon.hp + pokemon.ataque + pokemon.defensa + pokemon.velocidad + pokemon.especial;
 }
 
 function generarCaracteristicas(pokemon) {
+    const roles = [];
+    if (pokemon.ataque >= 95) roles.push("Atacante");
+    if (pokemon.defensa >= 95) roles.push("Tanque");
+    if (pokemon.velocidad >= 95) roles.push("Rápido");
+    if (roles.length === 0) roles.push("Balanceado");
+
     return `
     Altura: ${(pokemon.altura / 10).toFixed(1)} m<br>
     Peso: ${(pokemon.peso / 10).toFixed(1)} kg<br>
-    Poder base: ${calcularPoder(pokemon)}
+    Poder base: ${calcularPoder(pokemon)}<br>
+    Rol: ${roles.join(", ")}
   `;
 }
 
@@ -161,13 +154,39 @@ function crearStat(nombre, valor) {
   `;
 }
 
+function mezclarArray(arr) {
+    const copia = [...arr];
+    for (let i = copia.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copia[i], copia[j]] = [copia[j], copia[i]];
+    }
+    return copia;
+}
+
 function estaEnMiEquipo(id) {
     return equipoUsuario.some(p => p.id === id);
+}
+
+function actualizarHero() {
+    contadorUsuarioHero.textContent = `${equipoUsuario.length} / 6`;
+    rivalHero.textContent = rivalSeleccionado ? rivalSeleccionado.nombre : "Ninguno";
+}
+
+function llenarTipos() {
+    const tiposUnicos = [...new Set(pokemones.flatMap(p => p.tipos))].sort();
+
+    tiposUnicos.forEach(tipo => {
+        const option = document.createElement("option");
+        option.value = tipo;
+        option.textContent = capitalizar(traducirTipo(tipo));
+        filtroTipo.appendChild(option);
+    });
 }
 
 function renderizarPokemones(lista) {
     if (!lista.length) {
         catalogo.innerHTML = `<p class="mensaje">No se encontraron pokémons.</p>`;
+        pieTexto.textContent = "No se encontraron resultados.";
         return;
     }
 
@@ -222,8 +241,11 @@ window.seleccionarPokemonUsuario = function (id) {
         equipoUsuario.push(pokemon);
     }
 
+    regenerarRivalesSinMiEquipo();
     renderizarEquipoUsuario();
+    renderizarEquiposRivales();
     renderizarPokemones(pokemonesFiltrados);
+    actualizarHero();
 };
 
 function renderizarEquipoUsuario() {
@@ -252,54 +274,27 @@ function renderizarEquipoUsuario() {
     contadorUsuario.textContent = `${equipoUsuario.length} / 6 seleccionados`;
 }
 
-function obtenerPokemonesDisponiblesParaRival() {
-    return pokemones.filter(p => !equipoUsuario.some(u => u.id === p.id));
-}
-
-function mezclarArray(arr) {
-    const copia = [...arr];
-    for (let i = copia.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copia[i], copia[j]] = [copia[j], copia[i]];
-    }
-    return copia;
-}
-
 function generarEquiposRivales() {
-    const baseDisponibles = pokemones.length ? pokemones : [];
+    const nombres = ["Equipo Fuego", "Equipo Agua", "Equipo Trueno", "Equipo Sombra"];
+    const disponibles = [...pokemones];
+    const mezcla = mezclarArray(disponibles);
+
     equiposRivales = [];
 
-    const nombres = [
-        "Equipo Fuego",
-        "Equipo Agua",
-        "Equipo Trueno",
-        "Equipo Sombra"
-    ];
-
     for (let i = 0; i < 4; i++) {
-        const mezcla = mezclarArray(baseDisponibles);
-        const equipo = mezcla.slice(i * 6, i * 6 + 6);
-
         equiposRivales.push({
             id: i + 1,
             nombre: nombres[i],
-            pokemones: equipo
+            pokemones: mezcla.slice(i * 6, i * 6 + 6)
         });
     }
 }
 
 function regenerarRivalesSinMiEquipo() {
-    const disponibles = obtenerPokemonesDisponiblesParaRival();
-    const nombres = [
-        "Equipo Fuego",
-        "Equipo Agua",
-        "Equipo Trueno",
-        "Equipo Sombra"
-    ];
+    const nombres = ["Equipo Fuego", "Equipo Agua", "Equipo Trueno", "Equipo Sombra"];
+    const disponibles = pokemones.filter(p => !equipoUsuario.some(u => u.id === p.id));
 
-    if (disponibles.length < 24) {
-        return;
-    }
+    if (disponibles.length < 24) return;
 
     const mezcla = mezclarArray(disponibles);
     equiposRivales = [];
@@ -336,6 +331,8 @@ function renderizarEquiposRivales() {
       </button>
     </div>
   `).join("");
+
+    actualizarHero();
 }
 
 window.seleccionarRival = function (id) {
@@ -359,34 +356,57 @@ function aplicarFiltros() {
 function elegirAleatorio() {
     const disponibles = pokemones.filter(p => !estaEnMiEquipo(p.id));
     if (!disponibles.length) return;
-
     const random = disponibles[Math.floor(Math.random() * disponibles.length)];
     busqueda.value = random.nombre;
     aplicarFiltros();
 }
 
-function limpiarMiEquipo() {
-    equipoUsuario = [];
-    rivalSeleccionado = null;
+function autocompletarEquipo() {
+    const disponibles = pokemones.filter(p => !estaEnMiEquipo(p.id));
+    const mezcla = mezclarArray(disponibles);
+
+    while (equipoUsuario.length < 6 && mezcla.length) {
+        equipoUsuario.push(mezcla.shift());
+    }
+
     regenerarRivalesSinMiEquipo();
     renderizarEquipoUsuario();
     renderizarEquiposRivales();
     renderizarPokemones(pokemonesFiltrados);
+    actualizarHero();
+}
+
+function limpiarMiEquipo() {
+    equipoUsuario = [];
+    rivalSeleccionado = null;
+    resultadoFinal.classList.add("oculto");
+    presentacionVS.classList.add("oculto");
+    cinematica.classList.add("oculto");
+
+    generarEquiposRivales();
+    renderizarEquipoUsuario();
+    renderizarEquiposRivales();
+    renderizarPokemones(pokemonesFiltrados);
+    actualizarHero();
 }
 
 function reiniciarTodo() {
     equipoUsuario = [];
     rivalSeleccionado = null;
+    resultadoFinal.classList.add("oculto");
+    presentacionVS.classList.add("oculto");
     cinematica.classList.add("oculto");
     logBatalla.innerHTML = "";
     estadoBatalla.textContent = "Preparando combate...";
     busqueda.value = "";
     filtroTipo.value = "";
     pokemonesFiltrados = [...pokemones];
+
     generarEquiposRivales();
     renderizarEquipoUsuario();
     renderizarEquiposRivales();
     renderizarPokemones(pokemonesFiltrados);
+    actualizarHero();
 }
 
 function dormir(ms) {
@@ -414,7 +434,8 @@ function actualizarUIBatalla(pA, pB, hpA, hpB, turno, duelo, rivalNombre) {
     vidaTextoA.textContent = `${Math.max(hpA, 0)} / ${pA.hp}`;
     vidaTextoB.textContent = `${Math.max(hpB, 0)} / ${pB.hp}`;
 
-    rondaTexto.textContent = `Duelo ${duelo} - Turno ${turno}`;
+    rondaTexto.textContent = `Duelo ${duelo}`;
+    turnoBox.textContent = `Turno ${turno}`;
 }
 
 function aplicarAnimacionGolpe(atacanteImg, defensorImg) {
@@ -430,8 +451,19 @@ function aplicarAnimacionGolpe(atacanteImg, defensorImg) {
 function calcularDanio(atacante, defensor) {
     const base = atacante.ataque + Math.floor(atacante.especial / 2);
     const defensaReducida = Math.floor(defensor.defensa / 3);
+    const critico = Math.random() < 0.12 ? 18 : 0;
+    const esquive = Math.random() < 0.08;
+    if (esquive) return 0;
+
     const random = Math.floor(Math.random() * 16) + 8;
-    return Math.max(base - defensaReducida + random, 8);
+    return Math.max(base - defensaReducida + random + critico, 8);
+}
+
+async function mostrarVS(rivalActual) {
+    vsNombreA.textContent = "Equipo jugador";
+    vsNombreB.textContent = rivalActual.nombre;
+    presentacionVS.classList.remove("oculto");
+    await dormir(1800);
 }
 
 async function dueloPokemon(pA, pB, numeroDuelo, rivalNombre) {
@@ -442,7 +474,7 @@ async function dueloPokemon(pA, pB, numeroDuelo, rivalNombre) {
     estadoBatalla.textContent = `Entrando al combate: ${capitalizar(pA.nombre)} vs ${capitalizar(pB.nombre)}`;
     actualizarUIBatalla(pA, pB, hpA, hpB, turno, numeroDuelo, rivalNombre);
     agregarLog(`<strong>Duelo ${numeroDuelo}:</strong> ${capitalizar(pA.nombre)} entra por tu equipo y ${capitalizar(pB.nombre)} por ${rivalNombre}.`);
-    await dormir(1100);
+    await dormir(900);
 
     while (hpA > 0 && hpB > 0) {
         const primeroA = pA.velocidad >= pB.velocidad;
@@ -450,35 +482,59 @@ async function dueloPokemon(pA, pB, numeroDuelo, rivalNombre) {
         if (primeroA) {
             const danioA = calcularDanio(pA, pB);
             aplicarAnimacionGolpe(imgA, imgB);
-            hpB -= danioA;
+
+            if (danioA === 0) {
+                agregarLog(`${capitalizar(pB.nombre)} esquivó el ataque de ${capitalizar(pA.nombre)}.`);
+            } else {
+                hpB -= danioA;
+                agregarLog(`${capitalizar(pA.nombre)} golpea y quita ${danioA} de vida.`);
+            }
+
             actualizarUIBatalla(pA, pB, hpA, hpB, turno, numeroDuelo, rivalNombre);
-            agregarLog(`${capitalizar(pA.nombre)} ataca y le quita ${danioA} a ${capitalizar(pB.nombre)}.`);
-            await dormir(950);
+            await dormir(850);
 
             if (hpB <= 0) break;
 
             const danioB = calcularDanio(pB, pA);
             aplicarAnimacionGolpe(imgB, imgA);
-            hpA -= danioB;
+
+            if (danioB === 0) {
+                agregarLog(`${capitalizar(pA.nombre)} esquivó el ataque rival.`);
+            } else {
+                hpA -= danioB;
+                agregarLog(`${capitalizar(pB.nombre)} responde con ${danioB} de daño.`);
+            }
+
             actualizarUIBatalla(pA, pB, hpA, hpB, turno, numeroDuelo, rivalNombre);
-            agregarLog(`${capitalizar(pB.nombre)} responde con ${danioB} de daño.`);
-            await dormir(950);
+            await dormir(850);
         } else {
             const danioB = calcularDanio(pB, pA);
             aplicarAnimacionGolpe(imgB, imgA);
-            hpA -= danioB;
+
+            if (danioB === 0) {
+                agregarLog(`${capitalizar(pA.nombre)} esquivó el primer ataque.`);
+            } else {
+                hpA -= danioB;
+                agregarLog(`${capitalizar(pB.nombre)} pega primero y hace ${danioB} de daño.`);
+            }
+
             actualizarUIBatalla(pA, pB, hpA, hpB, turno, numeroDuelo, rivalNombre);
-            agregarLog(`${capitalizar(pB.nombre)} pega primero y hace ${danioB} de daño.`);
-            await dormir(950);
+            await dormir(850);
 
             if (hpA <= 0) break;
 
             const danioA = calcularDanio(pA, pB);
             aplicarAnimacionGolpe(imgA, imgB);
-            hpB -= danioA;
+
+            if (danioA === 0) {
+                agregarLog(`${capitalizar(pB.nombre)} logró esquivar el contraataque.`);
+            } else {
+                hpB -= danioA;
+                agregarLog(`${capitalizar(pA.nombre)} contraataca con ${danioA} de daño.`);
+            }
+
             actualizarUIBatalla(pA, pB, hpA, hpB, turno, numeroDuelo, rivalNombre);
-            agregarLog(`${capitalizar(pA.nombre)} contraataca con ${danioA} de daño.`);
-            await dormir(950);
+            await dormir(850);
         }
 
         turno++;
@@ -497,12 +553,9 @@ async function dueloPokemon(pA, pB, numeroDuelo, rivalNombre) {
 
 async function iniciarBatalla() {
     if (equipoUsuario.length < 6) {
-        alert("Primero escoge tus 6 pokémon.");
+        alert("Primero arma tus 6 pokémon.");
         return;
     }
-
-    regenerarRivalesSinMiEquipo();
-    renderizarEquiposRivales();
 
     if (!rivalSeleccionado) {
         alert("Escoge un equipo rival.");
@@ -512,22 +565,30 @@ async function iniciarBatalla() {
     const rivalActual = equiposRivales.find(r => r.id === rivalSeleccionado.id);
 
     if (!rivalActual || rivalActual.pokemones.length < 6) {
-        alert("El equipo rival no está completo.");
+        alert("El equipo rival no está listo.");
         return;
     }
+
+    resultadoFinal.classList.add("oculto");
+    presentacionVS.classList.add("oculto");
+    cinematica.classList.add("oculto");
+    logBatalla.innerHTML = "";
+    marcadorJugador.textContent = "0";
+    marcadorRival.textContent = "0";
+
+    await mostrarVS(rivalActual);
 
     cinematica.classList.remove("oculto");
     cinematica.scrollIntoView({ behavior: "smooth" });
 
-    logBatalla.innerHTML = "";
     agregarLog("<strong>Comienza la batalla.</strong>");
     estadoBatalla.textContent = "Presentando equipos...";
-    await dormir(900);
+    await dormir(700);
 
     agregarLog(`Tu equipo: ${equipoUsuario.map(p => capitalizar(p.nombre)).join(", ")}.`);
-    await dormir(900);
+    await dormir(700);
     agregarLog(`${rivalActual.nombre}: ${rivalActual.pokemones.map(p => capitalizar(p.nombre)).join(", ")}.`);
-    await dormir(1200);
+    await dormir(1000);
 
     let victoriasUsuario = 0;
     let victoriasRival = 0;
@@ -546,20 +607,67 @@ async function iniciarBatalla() {
             victoriasRival++;
         }
 
+        marcadorJugador.textContent = victoriasUsuario;
+        marcadorRival.textContent = victoriasRival;
+
         agregarLog(`Marcador actual → Tú ${victoriasUsuario} - ${victoriasRival} ${rivalActual.nombre}`);
         estadoBatalla.textContent = `Marcador: Tú ${victoriasUsuario} - ${victoriasRival} ${rivalActual.nombre}`;
-        await dormir(1200);
+        await dormir(1000);
     }
 
+    resultadoFinal.classList.remove("oculto");
+
     if (victoriasUsuario > victoriasRival) {
-        agregarLog(`<strong>🔥 Ganaste la batalla final ${victoriasUsuario} a ${victoriasRival}.</strong>`);
+        tituloResultado.textContent = "¡Victoria!";
+        textoResultado.textContent = `Ganaste la batalla contra ${rivalActual.nombre} por ${victoriasUsuario} a ${victoriasRival}.`;
         estadoBatalla.textContent = "Ganador final: Tu equipo";
     } else if (victoriasRival > victoriasUsuario) {
-        agregarLog(`<strong>💀 Perdiste la batalla. ${rivalActual.nombre} ganó ${victoriasRival} a ${victoriasUsuario}.</strong>`);
+        tituloResultado.textContent = "Derrota";
+        textoResultado.textContent = `${rivalActual.nombre} ganó la batalla por ${victoriasRival} a ${victoriasUsuario}.`;
         estadoBatalla.textContent = `Ganador final: ${rivalActual.nombre}`;
     } else {
-        agregarLog(`<strong>⚔️ Empate total. La batalla termina ${victoriasUsuario} a ${victoriasRival}.</strong>`);
+        tituloResultado.textContent = "Empate";
+        textoResultado.textContent = `La batalla terminó empatada ${victoriasUsuario} a ${victoriasRival}.`;
         estadoBatalla.textContent = "Resultado final: Empate";
+    }
+
+    resultadoFinal.scrollIntoView({ behavior: "smooth" });
+}
+
+async function cargarPokemones() {
+    try {
+        const promesas = idsPokemon.map(async (id) => {
+            const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+            const data = await res.json();
+
+            return {
+                id: data.id,
+                nombre: data.name,
+                imagen: data.sprites.other["official-artwork"].front_default || data.sprites.front_default,
+                tipos: data.types.map(t => t.type.name),
+                hp: data.stats.find(s => s.stat.name === "hp").base_stat,
+                ataque: data.stats.find(s => s.stat.name === "attack").base_stat,
+                defensa: data.stats.find(s => s.stat.name === "defense").base_stat,
+                velocidad: data.stats.find(s => s.stat.name === "speed").base_stat,
+                especial: data.stats.find(s => s.stat.name === "special-attack").base_stat,
+                altura: data.height,
+                peso: data.weight
+            };
+        });
+
+        pokemones = await Promise.all(promesas);
+        pokemonesFiltrados = [...pokemones];
+
+        llenarTipos();
+        generarEquiposRivales();
+        renderizarEquipoUsuario();
+        renderizarEquiposRivales();
+        renderizarPokemones(pokemonesFiltrados);
+        actualizarHero();
+    } catch (error) {
+        console.error(error);
+        catalogo.innerHTML = `<p class="mensaje">No se pudieron cargar los pokémons.</p>`;
+        pieTexto.textContent = "Error al cargar datos.";
     }
 }
 
@@ -567,7 +675,9 @@ btnAleatorio.addEventListener("click", elegirAleatorio);
 busqueda.addEventListener("input", aplicarFiltros);
 filtroTipo.addEventListener("change", aplicarFiltros);
 btnLimpiarUsuario.addEventListener("click", limpiarMiEquipo);
+btnAutocompletar.addEventListener("click", autocompletarEquipo);
 btnBatalla.addEventListener("click", iniciarBatalla);
 btnResetTodo.addEventListener("click", reiniciarTodo);
+btnJugarOtra.addEventListener("click", reiniciarTodo);
 
 cargarPokemones();
