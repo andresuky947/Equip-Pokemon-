@@ -1,385 +1,551 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokédex 1ra Generación</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokédex 1ra Generación</title>
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
-        body {
-            background: #f3f3f3;
-            color: #222;
-        }
+    body{
+      background:#f4f4f4;
+      color:#2C3E50;
+    }
 
-        /* NAV */
-        .navbar {
-            width: 100%;
-            background: #e3350d;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 30px;
-            padding: 18px 20px;
-            flex-wrap: wrap;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-        }
+    .navbar{
+      width:100%;
+      background:#C0392B;
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:28px;
+      padding:18px 20px;
+      flex-wrap:wrap;
+      box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    }
 
-        .navbar h2 {
-            font-size: 30px;
-            margin-right: 30px;
-        }
+    .navbar h2{
+      font-size:30px;
+      margin-right:25px;
+    }
 
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-size: 17px;
-            font-weight: bold;
-            padding: 8px 12px;
-            border-radius: 8px;
-            transition: 0.2s;
-        }
+    .navbar a{
+      color:white;
+      text-decoration:none;
+      font-size:16px;
+      font-weight:bold;
+      padding:8px 10px;
+      border-radius:8px;
+      transition:0.2s;
+    }
 
-        .navbar a:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
+    .navbar a:hover{
+      background:rgba(255,255,255,0.15);
+    }
 
-        /* CONTENEDOR */
-        .contenedor {
-            width: 90%;
-            max-width: 1250px;
-            margin: 35px auto;
-        }
+    .contenedor{
+      width:92%;
+      max-width:1350px;
+      margin:30px auto 50px;
+    }
 
-        .titulo {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 50px;
-            font-weight: 800;
-            color: #1f2d3d;
-        }
+    .titulo{
+      text-align:center;
+      font-size:54px;
+      color:#2C3E50;
+      font-weight:900;
+      margin-bottom:10px;
+    }
 
-        .subtitulo {
-            text-align: center;
-            color: #666;
-            font-size: 20px;
-            margin-bottom: 30px;
-        }
+    .subtitulo{
+      text-align:center;
+      color:#555;
+      font-size:19px;
+      margin-bottom:28px;
+    }
 
-        /* CONTROLES */
-        .controles {
-            display: flex;
-            justify-content: center;
-            gap: 18px;
-            flex-wrap: wrap;
-            margin-bottom: 35px;
-        }
+    .controles{
+      display:flex;
+      justify-content:center;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:35px;
+    }
 
-        .buscador,
-        .filtro,
-        .boton-random {
-            height: 58px;
-            border: none;
-            border-radius: 14px;
-            font-size: 19px;
-        }
+    .buscador,
+    .filtro,
+    .boton-random{
+      height:56px;
+      border:none;
+      border-radius:14px;
+      font-size:18px;
+      outline:none;
+    }
 
-        .buscador {
-            width: 340px;
-            padding: 0 18px;
-            background: white;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-            outline: none;
-        }
+    .buscador{
+      width:330px;
+      padding:0 18px;
+      background:white;
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    }
 
-        .filtro {
-            width: 260px;
-            padding: 0 15px;
-            background: white;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-            outline: none;
-            cursor: pointer;
-        }
+    .filtro{
+      width:250px;
+      padding:0 14px;
+      background:white;
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);
+      cursor:pointer;
+    }
 
-        .boton-random {
-            padding: 0 25px;
-            background: #3498db;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-            transition: 0.2s;
-        }
+    .boton-random{
+      background:#7FBCBD;
+      color:white;
+      font-weight:bold;
+      padding:0 22px;
+      cursor:pointer;
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);
+      transition:0.2s;
+    }
 
-        .boton-random:hover {
-            background: #2f89c5;
-        }
+    .boton-random:hover{
+      background:#68a7a8;
+    }
 
-        /* GRID */
-        .catalogo {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-        }
+    .seleccionados-box{
+      background:white;
+      border-radius:18px;
+      padding:22px;
+      margin-bottom:30px;
+      box-shadow:0 5px 16px rgba(0,0,0,0.08);
+      border-top:6px solid #F1C40F;
+    }
 
-        /* CARD */
-        .card {
-            background: white;
-            border-radius: 18px;
-            padding: 18px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            transition: 0.25s;
-            position: relative;
-            overflow: hidden;
-            min-height: 390px;
-        }
+    .seleccionados-box h3{
+      margin-bottom:14px;
+      color:#C0392B;
+      font-size:24px;
+    }
 
-        .card:hover {
-            transform: translateY(-6px);
-        }
+    .seleccionados{
+      display:flex;
+      flex-wrap:wrap;
+      gap:16px;
+      margin-bottom:18px;
+    }
 
-        .numero {
-            font-size: 16px;
-            color: #9a9a9a;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
+    .slot{
+      flex:1;
+      min-width:250px;
+      background:#f8f8f8;
+      border:2px dashed #7FBCBD;
+      border-radius:14px;
+      padding:16px;
+      min-height:90px;
+    }
 
-        .numero span {
-            color: #e3350d;
-        }
+    .slot strong{
+      display:block;
+      color:#2C3E50;
+      margin-bottom:8px;
+      font-size:18px;
+    }
 
-        .imagen-box {
-            width: 100%;
-            height: 210px;
-            background: #f1f1f1;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 18px;
-        }
+    .acciones-pelea{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
 
-        .imagen-box img {
-            width: 180px;
-            height: 180px;
-            object-fit: contain;
-        }
+    .btn{
+      border:none;
+      border-radius:12px;
+      padding:14px 20px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:0.2s;
+    }
 
-        .nombre {
-            font-size: 22px;
-            font-weight: 800;
-            margin-bottom: 14px;
-        }
+    .btn-pelea{
+      background:#C0392B;
+      color:white;
+    }
 
-        .tipos {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+    .btn-pelea:hover{
+      background:#a93226;
+    }
 
-        .tipo {
-            padding: 7px 16px;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            text-transform: capitalize;
-        }
+    .btn-limpiar{
+      background:#2C3E50;
+      color:white;
+    }
 
-        .planta {
-            background: #78C850;
-        }
+    .btn-limpiar:hover{
+      background:#1d2a36;
+    }
 
-        .veneno {
-            background: #A040A0;
-        }
+    .resultado{
+      margin-top:18px;
+      background:#fff8db;
+      border-left:6px solid #F1C40F;
+      border-radius:10px;
+      padding:16px;
+      font-size:17px;
+      line-height:1.5;
+      color:#2C3E50;
+      display:none;
+    }
 
-        .fuego {
-            background: #F08030;
-        }
+    .catalogo{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+      gap:24px;
+    }
 
-        .agua {
-            background: #6890F0;
-        }
+    .card{
+      background:white;
+      border-radius:20px;
+      padding:18px;
+      box-shadow:0 5px 16px rgba(0,0,0,0.08);
+      transition:0.25s;
+      overflow:hidden;
+      position:relative;
+      border-top:6px solid #7FBCBD;
+    }
 
-        .electrico {
-            background: #F8D030;
-            color: #333;
-        }
+    .card:hover{
+      transform:translateY(-6px);
+    }
 
-        .normal {
-            background: #A8A878;
-        }
+    .numero{
+      font-size:16px;
+      color:#7d7d7d;
+      font-weight:bold;
+      margin-bottom:12px;
+    }
 
-        .hada {
-            background: #EE99AC;
-        }
+    .numero span{
+      color:#C0392B;
+    }
 
-        .volador {
-            background: #A890F0;
-        }
+    .imagen-box{
+      width:100%;
+      height:210px;
+      background:#f1f1f1;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:18px;
+    }
 
-        .mensaje {
-            grid-column: 1 / -1;
-            text-align: center;
-            font-size: 22px;
-            color: #666;
-            padding: 30px 0;
-        }
+    .imagen-box img{
+      width:170px;
+      height:170px;
+      object-fit:contain;
+    }
 
-        .pie {
-            text-align: center;
-            color: #777;
-            margin-top: 25px;
-            font-size: 18px;
-        }
+    .nombre{
+      font-size:22px;
+      font-weight:900;
+      margin-bottom:12px;
+      color:#2C3E50;
+    }
 
-        @media(max-width:768px) {
-            .titulo {
-                font-size: 36px;
-            }
+    .tipos{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
 
-            .subtitulo {
-                font-size: 17px;
-            }
+    .tipo{
+      padding:7px 14px;
+      border-radius:8px;
+      color:white;
+      font-size:14px;
+      font-weight:bold;
+      text-transform:capitalize;
+    }
 
-            .buscador,
-            .filtro,
-            .boton-random {
-                width: 100%;
-                max-width: 500px;
-            }
+    .planta{ background:#7FBCBD; }
+    .veneno{ background:#8e44ad; }
+    .fuego{ background:#C0392B; }
+    .agua{ background:#3498db; }
+    .electrico{ background:#F1C40F; color:#2C3E50; }
+    .normal{ background:#95a5a6; }
+    .hada{ background:#ff9ff3; color:#2C3E50; }
 
-            .navbar {
-                gap: 12px;
-            }
+    .caracteristicas{
+      margin-top:10px;
+      margin-bottom:12px;
+      line-height:1.6;
+      font-size:15px;
+      color:#34495e;
+    }
 
-            .navbar h2 {
-                width: 100%;
-                text-align: center;
-                margin-right: 0;
-            }
-        }
-    </style>
+    .stats{
+      background:#f8f9fa;
+      padding:12px;
+      border-radius:12px;
+      margin-bottom:15px;
+    }
+
+    .stat{
+      margin-bottom:10px;
+    }
+
+    .stat-top{
+      display:flex;
+      justify-content:space-between;
+      font-size:14px;
+      margin-bottom:4px;
+      font-weight:bold;
+    }
+
+    .barra{
+      width:100%;
+      height:10px;
+      background:#ddd;
+      border-radius:10px;
+      overflow:hidden;
+    }
+
+    .relleno{
+      height:100%;
+      background:#7FBCBD;
+      border-radius:10px;
+    }
+
+    .btn-seleccionar{
+      width:100%;
+      background:#2C3E50;
+      color:white;
+      border:none;
+      border-radius:12px;
+      padding:14px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:0.2s;
+    }
+
+    .btn-seleccionar:hover{
+      background:#1f2d3a;
+    }
+
+    .btn-seleccionar.activo{
+      background:#C0392B;
+    }
+
+    .mensaje{
+      grid-column:1 / -1;
+      text-align:center;
+      font-size:22px;
+      color:#666;
+      padding:30px 0;
+    }
+
+    .pie{
+      text-align:center;
+      color:#666;
+      margin-top:28px;
+      font-size:17px;
+    }
+
+    @media(max-width:768px){
+      .titulo{
+        font-size:36px;
+      }
+
+      .subtitulo{
+        font-size:17px;
+      }
+
+      .buscador,
+      .filtro,
+      .boton-random{
+        width:100%;
+        max-width:500px;
+      }
+
+      .navbar h2{
+        width:100%;
+        text-align:center;
+        margin-right:0;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
-    <nav class="navbar">
-        <h2>Pokédex 1ra Generación</h2>
-        <a href="#">Inicio</a>
-        <a href="#">Pokédex</a>
-        <a href="#">Juegos</a>
-        <a href="#">Coleccionables</a>
-        <a href="#">Noticias</a>
-    </nav>
+  <nav class="navbar">
+    <h2>Pokédex 1ra Generación</h2>
+    <a href="#">Inicio</a>
+    <a href="#">Pokédex</a>
+    <a href="#">Juegos</a>
+    <a href="#">Combates</a>
+    <a href="#">Noticias</a>
+  </nav>
 
-    <div class="contenedor">
-        <h1 class="titulo">Catálogo Pokémon 1ra Generación</h1>
-        <p class="subtitulo">Solo 6 pokémon, sin legendarios ni cosas raras</p>
+  <div class="contenedor">
+    <h1 class="titulo">Catálogo Pokémon 1ra Generación</h1>
+    <p class="subtitulo">Escoge 2 pokémon y hazlos pelear entre ellos</p>
 
-        <div class="controles">
-            <input type="text" id="busqueda" class="buscador" placeholder="Buscar pokémon...">
-
-            <select id="filtroTipo" class="filtro">
-                <option value="">Todos los tipos</option>
-            </select>
-
-            <button class="boton-random" id="sorpresa">¡Sorpréndeme!</button>
-        </div>
-
-        <section class="catalogo" id="catalogo">
-            <p class="mensaje">Cargando pokémons...</p>
-        </section>
-
-        <p class="pie" id="pieTexto">Mostrando 6 pokémon de la 1ra generación.</p>
+    <div class="controles">
+      <input type="text" id="busqueda" class="buscador" placeholder="Buscar pokémon...">
+      <select id="filtroTipo" class="filtro">
+        <option value="">Todos los tipos</option>
+      </select>
+      <button class="boton-random" id="sorpresa">¡Sorpréndeme!</button>
     </div>
 
-    <script>
-        const catalogo = document.getElementById("catalogo");
-        const busqueda = document.getElementById("busqueda");
-        const filtroTipo = document.getElementById("filtroTipo");
-        const sorpresa = document.getElementById("sorpresa");
-        const pieTexto = document.getElementById("pieTexto");
+    <div class="seleccionados-box">
+      <h3>Zona de combate</h3>
 
-        let pokemones = [];
-        let pokemonesFiltrados = [];
+      <div class="seleccionados">
+        <div class="slot" id="slot1">
+          <strong>Pokémon 1</strong>
+          <span>No has seleccionado nada todavía</span>
+        </div>
 
-        // SOLO 6 POKÉMONES
-        const idsPokemon = [1, 4, 7, 25, 133, 39];
+        <div class="slot" id="slot2">
+          <strong>Pokémon 2</strong>
+          <span>No has seleccionado nada todavía</span>
+        </div>
+      </div>
 
-        async function cargarPokemones() {
-            try {
-                const promesas = idsPokemon.map(async (id) => {
-                    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-                    const data = await res.json();
+      <div class="acciones-pelea">
+        <button class="btn btn-pelea" id="btnPelea">Hacer pelear</button>
+        <button class="btn btn-limpiar" id="btnLimpiar">Limpiar selección</button>
+      </div>
 
-                    return {
-                        id: data.id,
-                        nombre: data.name,
-                        imagen: data.sprites.other["official-artwork"].front_default || data.sprites.front_default,
-                        tipos: data.types.map(t => t.type.name)
-                    };
-                });
+      <div class="resultado" id="resultadoPelea"></div>
+    </div>
 
-                pokemones = await Promise.all(promesas);
-                pokemonesFiltrados = [...pokemones];
+    <section class="catalogo" id="catalogo">
+      <p class="mensaje">Cargando pokémons...</p>
+    </section>
 
-                llenarTipos();
-                renderizarPokemones(pokemonesFiltrados);
-            } catch (error) {
-                console.error("Error cargando pokémons:", error);
-                catalogo.innerHTML = `<p class="mensaje">No se pudieron cargar los pokémons.</p>`;
-            }
-        }
+    <p class="pie" id="pieTexto">Mostrando 6 pokémon de la 1ra generación.</p>
+  </div>
 
-        function traducirTipo(tipo) {
-            const traducciones = {
-                grass: "planta",
-                poison: "veneno",
-                fire: "fuego",
-                water: "agua",
-                electric: "electrico",
-                normal: "normal",
-                fairy: "hada",
-                flying: "volador"
-            };
-            return traducciones[tipo] || tipo;
-        }
+  <script>
+    const catalogo = document.getElementById("catalogo");
+    const busqueda = document.getElementById("busqueda");
+    const filtroTipo = document.getElementById("filtroTipo");
+    const sorpresa = document.getElementById("sorpresa");
+    const pieTexto = document.getElementById("pieTexto");
 
-        function claseTipo(tipo) {
-            const clases = {
-                grass: "planta",
-                poison: "veneno",
-                fire: "fuego",
-                water: "agua",
-                electric: "electrico",
-                normal: "normal",
-                fairy: "hada",
-                flying: "volador"
-            };
-            return clases[tipo] || "normal";
-        }
+    const slot1 = document.getElementById("slot1");
+    const slot2 = document.getElementById("slot2");
+    const btnPelea = document.getElementById("btnPelea");
+    const btnLimpiar = document.getElementById("btnLimpiar");
+    const resultadoPelea = document.getElementById("resultadoPelea");
 
-        function renderizarPokemones(lista) {
-            if (lista.length === 0) {
-                catalogo.innerHTML = `<p class="mensaje">No se encontraron pokémons.</p>`;
-                pieTexto.textContent = "Mostrando 0 pokémon.";
-                return;
-            }
+    let pokemones = [];
+    let pokemonesFiltrados = [];
+    let seleccionados = [];
 
-            catalogo.innerHTML = lista.map(pokemon => `
+    const idsPokemon = [1, 4, 7, 25, 133, 39];
+
+    async function cargarPokemones() {
+      try {
+        const promesas = idsPokemon.map(async (id) => {
+          const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+          const data = await res.json();
+
+          return {
+            id: data.id,
+            nombre: data.name,
+            imagen: data.sprites.other["official-artwork"].front_default || data.sprites.front_default,
+            tipos: data.types.map(t => t.type.name),
+            hp: data.stats.find(s => s.stat.name === "hp").base_stat,
+            ataque: data.stats.find(s => s.stat.name === "attack").base_stat,
+            defensa: data.stats.find(s => s.stat.name === "defense").base_stat,
+            velocidad: data.stats.find(s => s.stat.name === "speed").base_stat,
+            altura: data.height,
+            peso: data.weight
+          };
+        });
+
+        pokemones = await Promise.all(promesas);
+        pokemonesFiltrados = [...pokemones];
+
+        llenarTipos();
+        renderizarPokemones(pokemonesFiltrados);
+      } catch (error) {
+        console.error("Error cargando pokémons:", error);
+        catalogo.innerHTML = `<p class="mensaje">No se pudieron cargar los pokémons.</p>`;
+      }
+    }
+
+    function traducirTipo(tipo) {
+      const traducciones = {
+        grass: "planta",
+        poison: "veneno",
+        fire: "fuego",
+        water: "agua",
+        electric: "electrico",
+        normal: "normal",
+        fairy: "hada"
+      };
+      return traducciones[tipo] || tipo;
+    }
+
+    function claseTipo(tipo) {
+      const clases = {
+        grass: "planta",
+        poison: "veneno",
+        fire: "fuego",
+        water: "agua",
+        electric: "electrico",
+        normal: "normal",
+        fairy: "hada"
+      };
+      return clases[tipo] || "normal";
+    }
+
+    function capitalizar(texto) {
+      return texto.charAt(0).toUpperCase() + texto.slice(1);
+    }
+
+    function llenarTipos() {
+      const tiposUnicos = [...new Set(pokemones.flatMap(p => p.tipos))];
+
+      tiposUnicos.forEach(tipo => {
+        const option = document.createElement("option");
+        option.value = tipo;
+        option.textContent = capitalizar(traducirTipo(tipo));
+        filtroTipo.appendChild(option);
+      });
+    }
+
+    function generarCaracteristicas(pokemon) {
+      return `
+        Altura: ${pokemon.altura / 10} m<br>
+        Peso: ${pokemon.peso / 10} kg<br>
+        Poder base: ${pokemon.hp + pokemon.ataque + pokemon.defensa + pokemon.velocidad}
+      `;
+    }
+
+    function renderizarPokemones(lista) {
+      if (lista.length === 0) {
+        catalogo.innerHTML = `<p class="mensaje">No se encontraron pokémons.</p>`;
+        pieTexto.textContent = "Mostrando 0 pokémon.";
+        return;
+      }
+
+      catalogo.innerHTML = lista.map(pokemon => `
         <div class="card">
           <div class="numero"><span>N.º</span> ${pokemon.id.toString().padStart(4, "0")}</div>
-          
+
           <div class="imagen-box">
             <img src="${pokemon.imagen}" alt="${pokemon.nombre}">
           </div>
@@ -391,52 +557,156 @@
               <span class="tipo ${claseTipo(tipo)}">${capitalizar(traducirTipo(tipo))}</span>
             `).join("")}
           </div>
+
+          <div class="caracteristicas">
+            ${generarCaracteristicas(pokemon)}
+          </div>
+
+          <div class="stats">
+            ${crearStat("HP", pokemon.hp)}
+            ${crearStat("Ataque", pokemon.ataque)}
+            ${crearStat("Defensa", pokemon.defensa)}
+            ${crearStat("Velocidad", pokemon.velocidad)}
+          </div>
+
+          <button class="btn-seleccionar ${estaSeleccionado(pokemon.id) ? 'activo' : ''}" onclick="seleccionarPokemon(${pokemon.id})">
+            ${estaSeleccionado(pokemon.id) ? 'Seleccionado' : 'Elegir para pelea'}
+          </button>
         </div>
       `).join("");
 
-            pieTexto.textContent = `Mostrando ${lista.length} pokémon de la 1ra generación.`;
+      pieTexto.textContent = `Mostrando ${lista.length} pokémon de la 1ra generación.`;
+    }
+
+    function crearStat(nombre, valor) {
+      const porcentaje = Math.min((valor / 150) * 100, 100);
+      return `
+        <div class="stat">
+          <div class="stat-top">
+            <span>${nombre}</span>
+            <span>${valor}</span>
+          </div>
+          <div class="barra">
+            <div class="relleno" style="width:${porcentaje}%"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function estaSeleccionado(id) {
+      return seleccionados.some(p => p.id === id);
+    }
+
+    window.seleccionarPokemon = function(id) {
+      const pokemon = pokemones.find(p => p.id === id);
+      if (!pokemon) return;
+
+      const yaExiste = seleccionados.some(p => p.id === id);
+
+      if (yaExiste) {
+        seleccionados = seleccionados.filter(p => p.id !== id);
+      } else {
+        if (seleccionados.length >= 2) {
+          alert("Ya seleccionaste 2 pokémon. Primero limpia o quita uno.");
+          return;
         }
+        seleccionados.push(pokemon);
+      }
 
-        function capitalizar(texto) {
-            return texto.charAt(0).toUpperCase() + texto.slice(1);
-        }
+      actualizarSlots();
+      renderizarPokemones(pokemonesFiltrados);
+    };
 
-        function llenarTipos() {
-            const tiposUnicos = [...new Set(pokemones.flatMap(p => p.tipos))];
+    function actualizarSlots() {
+      slot1.innerHTML = `
+        <strong>Pokémon 1</strong>
+        <span>${seleccionados[0] ? capitalizar(seleccionados[0].nombre) + " | Poder: " + calcularPoder(seleccionados[0]) : "No has seleccionado nada todavía"}</span>
+      `;
 
-            tiposUnicos.forEach(tipo => {
-                const option = document.createElement("option");
-                option.value = tipo;
-                option.textContent = capitalizar(traducirTipo(tipo));
-                filtroTipo.appendChild(option);
-            });
-        }
+      slot2.innerHTML = `
+        <strong>Pokémon 2</strong>
+        <span>${seleccionados[1] ? capitalizar(seleccionados[1].nombre) + " | Poder: " + calcularPoder(seleccionados[1]) : "No has seleccionado nada todavía"}</span>
+      `;
+    }
 
-        function aplicarFiltros() {
-            const texto = busqueda.value.toLowerCase().trim();
-            const tipoSeleccionado = filtroTipo.value;
+    function calcularPoder(pokemon) {
+      return pokemon.hp + pokemon.ataque + pokemon.defensa + pokemon.velocidad;
+    }
 
-            pokemonesFiltrados = pokemones.filter(pokemon => {
-                const coincideNombre = pokemon.nombre.toLowerCase().includes(texto);
-                const coincideTipo = tipoSeleccionado === "" || pokemon.tipos.includes(tipoSeleccionado);
-                return coincideNombre && coincideTipo;
-            });
+    function pelear() {
+      if (seleccionados.length < 2) {
+        alert("Escoge 2 pokémon primero.");
+        return;
+      }
 
-            renderizarPokemones(pokemonesFiltrados);
-        }
+      const p1 = seleccionados[0];
+      const p2 = seleccionados[1];
 
-        function pokemonAleatorio() {
-            const random = pokemones[Math.floor(Math.random() * pokemones.length)];
-            busqueda.value = random.nombre;
-            aplicarFiltros();
-        }
+      const poder1 = calcularPoder(p1) + Math.floor(Math.random() * 30);
+      const poder2 = calcularPoder(p2) + Math.floor(Math.random() * 30);
 
-        busqueda.addEventListener("input", aplicarFiltros);
-        filtroTipo.addEventListener("change", aplicarFiltros);
-        sorpresa.addEventListener("click", pokemonAleatorio);
+      let ganador;
+      let texto;
 
-        cargarPokemones();
-    </script>
+      if (poder1 > poder2) {
+        ganador = p1;
+        texto = `
+          <strong>${capitalizar(p1.nombre)}</strong> ganó la pelea.<br>
+          Poder final: ${poder1} vs ${poder2}.<br>
+          Su ataque y resistencia pudieron más esta vez.
+        `;
+      } else if (poder2 > poder1) {
+        ganador = p2;
+        texto = `
+          <strong>${capitalizar(p2.nombre)}</strong> ganó la pelea.<br>
+          Poder final: ${poder2} vs ${poder1}.<br>
+          Se vio más fuerte en este combate.
+        `;
+      } else {
+        texto = `
+          <strong>Empate.</strong><br>
+          Los dos pokémon estuvieron muy parejos con ${poder1} de poder.
+        `;
+      }
+
+      resultadoPelea.style.display = "block";
+      resultadoPelea.innerHTML = texto;
+    }
+
+    function limpiarSeleccion() {
+      seleccionados = [];
+      resultadoPelea.style.display = "none";
+      resultadoPelea.innerHTML = "";
+      actualizarSlots();
+      renderizarPokemones(pokemonesFiltrados);
+    }
+
+    function aplicarFiltros() {
+      const texto = busqueda.value.toLowerCase().trim();
+      const tipoSeleccionado = filtroTipo.value;
+
+      pokemonesFiltrados = pokemones.filter(pokemon => {
+        const coincideNombre = pokemon.nombre.toLowerCase().includes(texto);
+        const coincideTipo = tipoSeleccionado === "" || pokemon.tipos.includes(tipoSeleccionado);
+        return coincideNombre && coincideTipo;
+      });
+
+      renderizarPokemones(pokemonesFiltrados);
+    }
+
+    function pokemonAleatorio() {
+      const random = pokemones[Math.floor(Math.random() * pokemones.length)];
+      busqueda.value = random.nombre;
+      aplicarFiltros();
+    }
+
+    busqueda.addEventListener("input", aplicarFiltros);
+    filtroTipo.addEventListener("change", aplicarFiltros);
+    sorpresa.addEventListener("click", pokemonAleatorio);
+    btnPelea.addEventListener("click", pelear);
+    btnLimpiar.addEventListener("click", limpiarSeleccion);
+
+    cargarPokemones();
+  </script>
 </body>
-
 </html>
