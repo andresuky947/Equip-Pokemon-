@@ -4,11 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon Stadium Canvas - Kanto</title>
+    <title>Pokémon Stadium Canvas - Kanto 151</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --pk-red: #C03928;
+            --pk-grey: #7F8C8D;
+            --pk-yellow: #F1C40F;
+            --pk-dark-blue: #2C3E50;
+        }
+
         body {
-            background-color: #1a1a1a;
+            background-color: var(--pk-dark-blue);
             color: white;
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -17,7 +24,7 @@
         canvas {
             display: block;
             touch-action: none;
-            image-rendering: pixelated;
+            image-rendering: auto;
         }
 
         #ui-layer {
@@ -26,10 +33,31 @@
             left: 0;
             width: 100%;
             pointer-events: none;
+            z-index: 10;
         }
 
         .pointer-events-auto {
             pointer-events: auto;
+        }
+
+        .text-pk-yellow {
+            color: var(--pk-yellow);
+        }
+
+        .bg-pk-red {
+            background-color: var(--pk-red);
+        }
+
+        .bg-pk-grey {
+            background-color: var(--pk-grey);
+        }
+
+        .bg-pk-dark {
+            background-color: #1a252f;
+        }
+
+        .border-pk-grey {
+            border-color: var(--pk-grey);
         }
     </style>
 </head>
@@ -37,27 +65,36 @@
 <body class="flex flex-col items-center justify-center h-screen">
 
     <!-- Capa de Interfaz de Usuario (UI) -->
-    <div id="ui-layer" class="p-6">
-        <div class="max-w-5xl mx-auto flex justify-between items-end">
-            <div>
-                <h1 class="text-3xl font-black italic tracking-tighter text-yellow-400 drop-shadow-md">POKÉMON STADIUM
+    <div id="ui-layer" class="p-4 md:p-8">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <h1
+                    class="text-4xl font-black italic tracking-tighter text-pk-yellow drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+                    POKÉMON STADIUM
                 </h1>
-                <p class="text-xs font-bold text-gray-400">CANVAS ENGINE | SÓLO 1ª GENERACIÓN</p>
+                <p class="text-xs font-bold text-white/70 uppercase tracking-widest">Kanto Edition | 151 Pokémon</p>
             </div>
-            <div class="flex gap-4 pointer-events-auto">
-                <div class="bg-black/50 border border-white/20 px-4 py-2 rounded-lg">
-                    <span class="text-xs block text-gray-400 uppercase">Equipo</span>
-                    <span id="team-count" class="text-xl font-bold">0 / 6</span>
+
+            <div class="flex gap-4 pointer-events-auto items-center">
+                <div class="bg-black/40 border border-white/10 px-6 py-2 rounded-xl backdrop-blur-sm">
+                    <span class="text-[10px] block text-pk-yellow font-bold uppercase">Tu Equipo</span>
+                    <span id="team-count" class="text-2xl font-black italic">0 / 6</span>
                 </div>
+
                 <button id="btn-battle" onclick="startBattle()"
-                    class="hidden bg-red-600 hover:bg-red-500 text-white px-8 py-2 rounded-lg font-black italic transition-all transform hover:scale-105 shadow-lg shadow-red-900/50">
+                    class="hidden bg-pk-red hover:brightness-110 text-white px-10 py-3 rounded-xl font-black italic transition-all transform hover:scale-105 shadow-xl border-b-4 border-black/30">
                     ¡BATALLA!
                 </button>
+
                 <button id="btn-reset" onclick="resetApp()"
-                    class="hidden bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-bold transition-all">
-                    Reiniciar
+                    class="hidden bg-pk-grey hover:bg-white hover:text-black text-white px-6 py-3 rounded-xl font-bold transition-all border-b-4 border-black/30">
+                    REINICIAR
                 </button>
             </div>
+        </div>
+
+        <div id="instruction" class="text-center mt-4 text-sm font-bold text-white/50 uppercase tracking-tighter">
+            Selecciona 6 Pokémon para desafiar a la máquina
         </div>
     </div>
 
@@ -70,40 +107,46 @@
         const teamCountDisplay = document.getElementById('team-count');
         const btnBattle = document.getElementById('btn-battle');
         const btnReset = document.getElementById('btn-reset');
+        const instruction = document.getElementById('instruction');
 
         // Configuración y Datos
-        let gameState = 'CATALOG'; // CATALOG, BATTLE, RESULT
+        let gameState = 'CATALOG';
         let scrollY = 0;
         let selectedIds = new Set();
         let hoveredId = null;
         let images = {};
-        let battleAnimFrame = 0;
         let rivalTeam = [];
         let playerTotal = 0;
         let rivalTotal = 0;
 
-        const POKEMONS = [
-            { id: 1, name: 'Bulbasaur', pc: 1115, color: '#78C850' },
-            { id: 4, name: 'Charmander', pc: 980, color: '#F08030' },
-            { id: 7, name: 'Squirtle', pc: 946, color: '#6890F0' },
-            { id: 25, name: 'Pikachu', pc: 938, color: '#F8D030' },
-            { id: 6, name: 'Charizard', pc: 2889, color: '#F08030' },
-            { id: 9, name: 'Blastoise', pc: 2466, color: '#6890F0' },
-            { id: 3, name: 'Venusaur', pc: 2720, color: '#78C850' },
-            { id: 150, name: 'Mewtwo', pc: 4178, color: '#F85888' },
-            { id: 149, name: 'Dragonite', pc: 3792, color: '#7038F8' },
-            { id: 130, name: 'Gyarados', pc: 3391, color: '#6890F0' },
-            { id: 143, name: 'Snorlax', pc: 3225, color: '#A8A878' },
-            { id: 94, name: 'Gengar', pc: 2878, color: '#705898' },
-            { id: 65, name: 'Alakazam', pc: 3057, color: '#F85888' },
-            { id: 68, name: 'Machamp', pc: 3056, color: '#C03028' },
-            { id: 131, name: 'Lapras', pc: 2641, color: '#98D8D8' },
-            { id: 38, name: 'Ninetales', pc: 2300, color: '#F08030' },
-            { id: 59, name: 'Arcanine', pc: 3029, color: '#F08030' },
-            { id: 135, name: 'Jolteon', pc: 2888, color: '#F8D030' },
-            { id: 134, name: 'Vaporeon', pc: 3114, color: '#6890F0' },
-            { id: 136, name: 'Flareon', pc: 3029, color: '#F08030' },
+        // Paleta de colores para JS
+        const COLORS = {
+            red: '#C03928',
+            grey: '#7F8C8D',
+            yellow: '#F1C40F',
+            darkBlue: '#2C3E50'
+        };
+
+        // Generación de los 151 nombres de Kanto
+        const NAMES = [
+            "Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise", "Caterpie", "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot", "Rattata", "Raticate", "Spearow", "Fearow", "Ekans", "Arbok", "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀", "Nidorina", "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Clefairy", "Clefable", "Vulpix", "Ninetales", "Jigglypuff", "Wigglytuff", "Zubat", "Golbat", "Oddish", "Gloom", "Vileplume", "Paras", "Parasect", "Venonat", "Venomoth", "Diglett", "Dugtrio", "Meowth", "Persian", "Psyduck", "Golduck", "Mankey", "Primeape", "Growlithe", "Arcanine", "Poliwag", "Poliwhirl", "Poliwrath", "Abra", "Kadabra", "Alakazam", "Machop", "Machoke", "Machamp", "Bellsprout", "Weepinbell", "Victreebel", "Tentacool", "Tentacruel", "Geodude", "Graveler", "Golem", "Ponyta", "Rapidash", "Slowpoke", "Slowbro", "Magnemite", "Magneton", "Farfetch'd", "Doduo", "Dodrio", "Seel", "Dewgong", "Grimer", "Muk", "Shellder", "Cloyster", "Gastly", "Haunter", "Gengar", "Onix", "Drowzee", "Hypno", "Krabby", "Kingler", "Voltorb", "Electrode", "Exeggcute", "Exeggutor", "Cubone", "Marowak", "Hitmonlee", "Hitmonchan", "Lickitung", "Koffing", "Weezing", "Rhyhorn", "Rhydon", "Chansey", "Tangela", "Kangaskhan", "Horsea", "Seadra", "Goldeen", "Seaking", "Staryu", "Starmie", "Mr. Mime", "Scyther", "Jynx", "Electabuzz", "Magmar", "Pinsir", "Tauros", "Magikarp", "Gyarados", "Lapras", "Ditto", "Eevee", "Vaporeon", "Jolteon", "Flareon", "Porygon", "Omanyte", "Omastar", "Kabuto", "Kabutops", "Aerodactyl", "Snorlax", "Articuno", "Zapdos", "Moltres", "Dratini", "Dragonair", "Dragonite", "Mewtwo", "Mew"
         ];
+
+        // Crear objeto de Pokémon con PC aleatorio pero coherente
+        const POKEMONS = NAMES.map((name, index) => {
+            const id = index + 1;
+            // Cálculo de PC base: legendarios y evoluciones finales tienen más
+            let basePC = 1000 + Math.floor(Math.random() * 2000);
+            if (id === 150 || id === 151 || [144, 145, 146].includes(id)) basePC += 1500;
+            if ([3, 6, 9, 65, 68, 94, 130, 143, 149].includes(id)) basePC += 800;
+
+            return {
+                id: id,
+                name: name,
+                pc: basePC,
+                color: COLORS.red
+            };
+        });
 
         // Inicialización
         function init() {
@@ -126,14 +169,14 @@
         }
 
         // Lógica de Dibujo del Catálogo
-        const cardW = 160;
-        const cardH = 200;
-        const gap = 20;
+        const cardW = 150;
+        const cardH = 180;
+        const gap = 15;
 
         function drawCatalog() {
             const cols = Math.floor(canvas.width / (cardW + gap));
             const startX = (canvas.width - (cols * (cardW + gap) - gap)) / 2;
-            const startY = 120 + scrollY;
+            const startY = 140 + scrollY;
 
             POKEMONS.forEach((p, i) => {
                 const col = i % cols;
@@ -141,38 +184,52 @@
                 const x = startX + col * (cardW + gap);
                 const y = startY + row * (cardH + gap);
 
-                // Solo dibujar si está en pantalla
+                // Hitbox para interacción
+                p.hitbox = { x, y, w: cardW, h: cardH };
+
                 if (y + cardH < 0 || y > canvas.height) return;
 
+                // Sombra
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 10;
+
                 // Fondo de tarjeta
-                ctx.fillStyle = selectedIds.has(p.id) ? '#2563eb' : (hoveredId === p.id ? '#333' : '#222');
+                const isSelected = selectedIds.has(p.id);
+                const isHovered = hoveredId === p.id;
+
+                ctx.fillStyle = isSelected ? COLORS.red : (isHovered ? '#3a4b5c' : '#243342');
                 ctx.beginPath();
-                ctx.roundRect(x, y, cardW, cardH, 15);
+                ctx.roundRect(x, y, cardW, cardH, 12);
                 ctx.fill();
 
-                if (selectedIds.has(p.id)) {
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-                }
+                ctx.shadowBlur = 0;
+
+                // Bordes
+                ctx.strokeStyle = isSelected ? COLORS.yellow : 'rgba(255,255,255,0.1)';
+                ctx.lineWidth = isSelected ? 4 : 1;
+                ctx.stroke();
+
+                // ID Number
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.font = '900 40px Arial';
+                ctx.textAlign = 'right';
+                ctx.fillText(p.id.toString().padStart(3, '0'), x + cardW - 10, y + 40);
 
                 // Imagen
                 if (images[p.id]) {
-                    ctx.drawImage(images[p.id], x + 20, y + 20, cardW - 40, cardW - 40);
+                    ctx.drawImage(images[p.id], x + 15, y + 10, cardW - 30, cardW - 30);
                 }
 
-                // Texto
+                // Nombre
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 14px Arial';
+                ctx.font = 'bold 13px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText(p.name.toUpperCase(), x + cardW / 2, y + cardH - 45);
+                ctx.fillText(p.name.toUpperCase(), x + cardW / 2, y + cardH - 35);
 
-                ctx.fillStyle = selectedIds.has(p.id) ? '#bfdbfe' : '#60a5fa';
-                ctx.font = '900 12px Arial';
-                ctx.fillText(`PC ${p.pc}`, x + cardW / 2, y + cardH - 25);
-
-                // Guardar hitboxes para clics
-                p.hitbox = { x, y, w: cardW, h: cardH };
+                // PC
+                ctx.fillStyle = isSelected ? 'white' : COLORS.yellow;
+                ctx.font = '900 16px Arial';
+                ctx.fillText(`${p.pc} PC`, x + cardW / 2, y + cardH - 15);
             });
         }
 
@@ -182,61 +239,96 @@
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
 
-            // Fondo de arena
-            const gradient = ctx.createRadialGradient(centerX, centerY, 50, centerX, centerY, 500);
-            gradient.addColorStop(0, '#333');
-            gradient.addColorStop(1, '#000');
-            ctx.fillStyle = gradient;
+            // Fondo gradiente
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#1a252f');
+            grad.addColorStop(1, '#000000');
+            ctx.fillStyle = grad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // VS Texto
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.font = '900 200px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText("VS", centerX, centerY + 70);
+            // Círculos de Arena
+            ctx.strokeStyle = 'rgba(241, 196, 15, 0.1)';
+            ctx.lineWidth = 2;
+            for (let i = 1; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, i * 150, 0, Math.PI * 2);
+                ctx.stroke();
+            }
 
-            // Equipos
-            renderTeamSide(playerTeam, 100, "TU EQUIPO", '#3b82f6', playerTotal);
-            renderTeamSide(rivalTeam, canvas.width - 300, "RIVAL", '#ef4444', rivalTotal);
+            // VS Texto
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.font = '900 300px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText("VS", centerX, centerY);
+
+            // Renderizar lados
+            renderTeamSide(playerTeam, canvas.width * 0.15, "TU EQUIPO", COLORS.yellow, playerTotal, true);
+            renderTeamSide(rivalTeam, canvas.width * 0.85 - 200, "RIVAL", COLORS.red, rivalTotal, false);
 
             if (gameState === 'RESULT') {
-                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillStyle = 'rgba(0,0,0,0.85)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                const winner = playerTotal >= rivalTotal ? "¡VICTORIA!" : "DERROTA";
-                ctx.fillStyle = playerTotal >= rivalTotal ? '#4ade80' : '#f87171';
-                ctx.font = '900 80px Arial italic';
-                ctx.fillText(winner, centerX, centerY);
+                const playerWins = playerTotal >= rivalTotal;
+                const winnerText = playerWins ? "¡VICTORIA!" : "DERROTA";
 
+                ctx.shadowColor = playerWins ? COLORS.yellow : COLORS.red;
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = playerWins ? COLORS.yellow : COLORS.red;
+                ctx.font = 'italic 900 100px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(winnerText, centerX, centerY - 20);
+
+                ctx.shadowBlur = 0;
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 24px Arial';
-                ctx.fillText(`${playerTotal} PC vs ${rivalTotal} PC`, centerX, centerY + 60);
+                ctx.font = 'bold 30px Arial';
+                ctx.fillText(`${playerTotal} PC TOTAL VS ${rivalTotal} PC TOTAL`, centerX, centerY + 60);
+
+                const subText = playerWins ? "Has dominado el estadio" : "Sigue entrenando para la próxima";
+                ctx.font = '16px Arial';
+                ctx.fillStyle = COLORS.grey;
+                ctx.fillText(subText.toUpperCase(), centerX, centerY + 100);
             }
         }
 
-        function renderTeamSide(team, xStart, label, color, total) {
-            ctx.fillStyle = color;
-            ctx.font = 'bold 20px Arial';
+        function renderTeamSide(team, xStart, label, color, total, isPlayer) {
             ctx.textAlign = 'left';
-            ctx.fillText(label, xStart, 180);
 
-            ctx.font = '900 40px Arial';
-            ctx.fillText(`${total} PC`, xStart, 230);
+            // Etiqueta de equipo
+            ctx.fillStyle = color;
+            ctx.font = '900 20px Arial';
+            ctx.fillText(label, xStart, 160);
 
+            // Total PC
+            ctx.fillStyle = 'white';
+            ctx.font = '900 45px Arial';
+            ctx.fillText(total.toLocaleString(), xStart, 210);
+            ctx.font = 'bold 15px Arial';
+            ctx.fillStyle = color;
+            ctx.fillText("PC TOTAL", xStart, 230);
+
+            // Lista de Pokémon
             team.forEach((p, i) => {
-                const y = 280 + i * 70;
-                ctx.fillStyle = 'rgba(255,255,255,0.1)';
-                ctx.roundRect(xStart, y, 200, 60, 10);
+                const y = 260 + i * 75;
+
+                // Card pequeña
+                ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                ctx.beginPath();
+                ctx.roundRect(xStart, y, 240, 65, 8);
                 ctx.fill();
 
                 if (images[p.id]) {
-                    ctx.drawImage(images[p.id], xStart + 5, y + 5, 50, 50);
+                    ctx.drawImage(images[p.id], xStart + 5, y + 5, 55, 55);
                 }
+
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 12px Arial';
-                ctx.fillText(p.name, xStart + 65, y + 25);
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(p.name.toUpperCase(), xStart + 70, y + 25);
+
                 ctx.fillStyle = color;
-                ctx.fillText(`PC ${p.pc}`, xStart + 65, y + 45);
+                ctx.font = '900 16px Arial';
+                ctx.fillText(`${p.pc} PC`, xStart + 70, y + 48);
             });
         }
 
@@ -284,9 +376,15 @@
         window.addEventListener('wheel', (e) => {
             if (gameState !== 'CATALOG') return;
             scrollY -= e.deltaY;
-            // Limitar scroll
+
+            // Limitar scroll dinámicamente según tamaño de pantalla
+            const cols = Math.floor(canvas.width / (cardW + gap));
+            const rows = Math.ceil(POKEMONS.length / cols);
+            const totalContentH = rows * (cardH + gap) + 200;
+
             const maxScroll = 0;
-            const minScroll = -Math.floor(POKEMONS.length / 4) * (cardH + gap);
+            const minScroll = Math.min(0, canvas.height - totalContentH);
+
             scrollY = Math.min(maxScroll, Math.max(minScroll, scrollY));
         });
 
@@ -294,31 +392,41 @@
             teamCountDisplay.textContent = `${selectedIds.size} / 6`;
             if (selectedIds.size === 6) {
                 btnBattle.classList.remove('hidden');
+                instruction.textContent = "¡Equipo listo! Pulsa Batalla";
             } else {
                 btnBattle.classList.add('hidden');
+                instruction.textContent = "Selecciona 6 Pokémon para desafiar a la máquina";
             }
         }
 
         function startBattle() {
             gameState = 'BATTLE';
             btnBattle.classList.add('hidden');
+            instruction.classList.add('hidden');
 
-            // Generar equipo rival al azar
-            rivalTeam = [...POKEMONS].sort(() => 0.5 - Math.random()).slice(0, 6);
+            // Generar equipo rival al azar (6 únicos)
+            rivalTeam = [...POKEMONS]
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 6);
 
-            playerTotal = POKEMONS.filter(p => selectedIds.has(p.id)).reduce((a, b) => a + b.pc, 0);
-            rivalTotal = rivalTeam.reduce((a, b) => a + b.pc, 0);
+            playerTotal = POKEMONS
+                .filter(p => selectedIds.has(p.id))
+                .reduce((sum, p) => sum + p.pc, 0);
 
+            rivalTotal = rivalTeam.reduce((sum, p) => sum + p.pc, 0);
+
+            // Simular carga de batalla
             setTimeout(() => {
                 gameState = 'RESULT';
                 btnReset.classList.remove('hidden');
-            }, 2000);
+            }, 2500);
         }
 
         function resetApp() {
             selectedIds.clear();
             gameState = 'CATALOG';
             btnReset.classList.add('hidden');
+            instruction.classList.remove('hidden');
             scrollY = 0;
             updateUI();
         }
