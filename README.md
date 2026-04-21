@@ -1,2 +1,2 @@
 # Equip-Pokemon-
-Elaborar esta mierda de los pokemones
+Elaborar este programa de los pokemones
